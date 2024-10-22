@@ -1,0 +1,122 @@
+// 1
+CREATE DATABASE LibraryManagement;
+USE LibraryManagement;
+CREATE TABLE authors (
+    author_id INT AUTO_INCREMENT PRIMARY KEY,
+    author_name VARCHAR(255) NOT NULL
+);
+CREATE TABLE genres (
+    genre_id INT AUTO_INCREMENT PRIMARY KEY,
+    genre_name VARCHAR(255) NOT NULL
+);
+CREATE TABLE books (
+    book_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    publication_year YEAR NOT NULL,
+    author_id INT,
+    genre_id INT,
+    FOREIGN KEY (author_id) REFERENCES authors(author_id),
+    FOREIGN KEY (genre_id) REFERENCES genres(genre_id)
+);
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL
+);
+CREATE TABLE borrowed_books (
+    borrow_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT,
+    user_id INT,
+    borrow_date DATE NOT NULL,
+    return_date DATE,
+    FOREIGN KEY (book_id) REFERENCES books(book_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+// 2
+
+INSERT INTO authors (author_name)
+VALUES ('George Orwell'), ('J.K. Rowling');
+
+INSERT INTO genres (genre_name)
+VALUES ('Dystopian'), ('Fantasy');
+
+INSERT INTO books (title, publication_year, author_id, genre_id)
+VALUES ('1984', 1949, 1, 1), ('Harry Potter and the Philosopher\'s Stone', 1997, 2, 2);
+       
+INSERT INTO users (username, email)
+VALUES ('john_doe', 'john.doe@example.com'), ('jane_smith', 'jane.smith@example.com');
+
+INSERT INTO borrowed_books (book_id, user_id, borrow_date, return_date)
+VALUES (1, 1, '2024-10-01', '2024-10-10'), (2, 2, '2024-10-02', NULL);
+
+// 3
+
+SELECT 
+    orders.id AS order_id,
+    customers.name AS customer_name,
+    employees.first_name AS employee_first_name,
+    employees.last_name AS employee_last_name,
+    shippers.name AS shipper_name,
+    products.name AS product_name,
+    categories.name AS category_name,
+    suppliers.name AS supplier_name,
+    order_details.quantity,
+    orders.date AS order_date
+FROM 
+    order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+INNER JOIN suppliers ON products.supplier_id = suppliers.id
+ORDER BY orders.id;
+
+// 4
+
+A) SELECT COUNT(*)
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+INNER JOIN suppliers ON products.supplier_id = suppliers.id;
+
+B) SELECT COUNT(*)
+FROM order_details
+LEFT JOIN orders ON order_details.order_id = orders.id
+LEFT JOIN customers ON orders.customer_id = customers.id
+RIGHT JOIN employees ON orders.employee_id = employees.employee_id
+LEFT JOIN shippers ON orders.shipper_id = shippers.id
+LEFT JOIN products ON order_details.product_id = products.id
+RIGHT JOIN categories ON products.category_id = categories.id
+LEFT JOIN suppliers ON products.supplier_id = suppliers.id;
+
+Кількість рядків не змінюється, оскільки всі записи в таблицях мають повні відповідності між спільними ключами. Це означає, що для кожного запису у лівій таблиці існує відповідний запис у правій таблиці, тому використання LEFT JOIN або RIGHT JOIN не додає рядків із NULL значеннями.
+
+C) SELECT *
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+WHERE employees.employee_id > 3 AND employees.employee_id <= 10;
+
+D) SELECT 
+    categories.name AS category_name, 
+    COUNT(*) AS row_count, 
+    AVG(order_details.quantity) AS average_quantity
+FROM order_details
+INNER JOIN products ON order_details.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+GROUP BY categories.name
+HAVING AVG(order_details.quantity) > 21
+ORDER BY row_count DESC;
+
+E) SELECT *
+FROM order_details
+INNER JOIN orders ON order_details.order_id = orders.id
+INNER JOIN products ON order_details.product_id = products.id
+LIMIT 4 OFFSET 1;
